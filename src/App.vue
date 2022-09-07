@@ -5,6 +5,8 @@
 </template>
 
 <script>
+// mapState
+
 export default {}
 </script>
 
