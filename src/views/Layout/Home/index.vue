@@ -8,22 +8,42 @@
     </van-nav-bar>
     <!-- 文章及内容 -->
     <van-tabs v-model="active" swipeable>
-      <van-tab :title="item.name" v-for="item in chennles" :key="item.id">
+      <van-tab
+        :title="item.name"
+        v-for="item in chennles"
+        :key="item.id"
+        class="article"
+      >
         <!-- 文章详情 -->
         <ArticleList :id="item.id"></ArticleList>
       </van-tab>
-      <span class="iconfont icon-gengduo"></span>
+      <span class="iconfont icon-gengduo" @click="isShow = true"></span>
     </van-tabs>
+    <!-- 弹出层 -->
+    <van-popup
+      v-model="isShow"
+      closeable
+      close-icon-position="top-left"
+      position="bottom"
+      :style="{ height: '100%' }"
+    >
+      <ChannelEdit
+        @change-active=";[(isShow = false), (active = $event)]"
+        :myChannelEdit="chennles"
+      ></ChannelEdit>
+    </van-popup>
   </div>
 </template>
 
 <script>
 import { getChennelAPI } from '@/api'
 import ArticleList from './components/ArticleList.vue'
+import ChannelEdit from './components/ChannelEdit.vue'
 export default {
   name: 'home',
   components: {
-    ArticleList
+    ArticleList,
+    ChannelEdit
   },
   created() {
     this.getChennel()
@@ -31,7 +51,8 @@ export default {
   data() {
     return {
       active: 0,
-      chennles: []
+      chennles: [],
+      isShow: false
     }
   },
   methods: {
@@ -54,6 +75,18 @@ export default {
 </script>
 
 <style scoped lang="less">
+.article {
+  height: calc(100vh - 82px - 93px - 100px);
+  overflow: auto;
+  &::-webkit-scrollbar {
+    width: 10px;
+    background-color: transparent;
+  }
+  &::-webkit-scrollbar-thumb {
+    background-color: #3296fa;
+    border-radius: 10px;
+  }
+}
 .navbar {
   background-color: #3296fa;
 

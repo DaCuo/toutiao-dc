@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+
+<body>
+  <script>
+    // executor: 执行器函数
+    // resolve: 把Promise把状态改为成功态   reject:把状态改为成功态
+    // value: 记录成功的原因     reason:记录失败的原因
+    // Promise的三个状态 
+    // Promise 状态只能改变一次
+    const PENDING = 'pending'
+    const FULFILLED = 'fulfilled'
+    const REJECTED = 'rejected'
+    class Promise {
+      // 成功的结果
+      value
+      // 失败的结果
+      reason
+      // 保存成功的函数
+      noFulfilledCallbacks = []
+      // 保存失败的函数
+      noRejectedCallbacks = []
+      // 初始化状态
+      status = PENDING
+      constructor(executor) {
+        // 成功的函数 
+        const resolve = (value) => {
+          if (this.status === PENDING) {
+            this.value = value
+            this.status = FULFILLED
+            this.noFulfilledCallbacks.forEach(bc => bc())
+          }
+        }
+
+        // 失败的函数
+        const reject = (reason) => {
+          if (this.status === PENDING) {
+            this.reason = reason
+            this.status = REJECTED
+            this.noRejectedCallbacks.forEach(bc => bc())
+          }
+        }
+
+        // 捕获错误并且调用reject
+        try {
+          executor(resolve, reject)
+        } catch (error) {
+          reject(error)
+        }
+      }
+
+      then(noFulfilled, noRejected) {
+        // then 成功的回调 并把成功的结果传给then成功的回调
+        if (this.status === FULFILLED) {
+          noFulfilled(this.value)
+        }
+        // then 失败的回调 并把失败的结果传给then失败的回调
+        if (this.status === REJECTED) {
+          noRejected(this.reason)
+        }
+        // 异步函数的处理 先把函数保存起来，等异步函数进行完毕以后，再去相对的成功或者失败的函数内去重新调用
+        if (this.status === PENDING) {
+          this.noFulfilledCallbacks.push(() => {
+            noFulfilled(this.value)
+          })
+          this.noRejectedCallbacks.push(() => {
+            noRejected(this.reason)
+          })
+        }
+      }
+
+    }
+    // then调用
+    const p = new Promise((resolve, reject) => {
+      // resolve('成功')
+      setTimeout(() => {
+        resolve('失败')
+      }, 3000)
+    })
+    p.then(
+      res => {
+        console.log(res);
+      },
+      err => {
+        console.log(err);
+      }
+
+    )
+  </script>
+</body>
+
+</html>
