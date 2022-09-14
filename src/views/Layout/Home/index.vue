@@ -28,15 +28,19 @@
       :style="{ height: '100%' }"
     >
       <ChannelEdit
+        v-if="isShow"
         @change-active=";[(isShow = false), (active = $event)]"
         :myChannelEdit="chennles"
+        @del-Channel="delChannel"
+        @add-Channel="addChannel"
       ></ChannelEdit>
     </van-popup>
   </div>
 </template>
 
 <script>
-import { getChennelAPI } from '@/api'
+import { mapGetters, mapMutations } from 'vuex'
+import { getChennelAPI, delChannelAPI, addChannelAPI } from '@/api'
 import ArticleList from './components/ArticleList.vue'
 import ChannelEdit from './components/ChannelEdit.vue'
 export default {
@@ -46,7 +50,7 @@ export default {
     ChannelEdit
   },
   created() {
-    this.getChennel()
+    this.infoChennel()
   },
   data() {
     return {
@@ -55,7 +59,23 @@ export default {
       isShow: false
     }
   },
+  computed: {
+    ...mapGetters(['isLogin'])
+  },
   methods: {
+    ...mapMutations(['GET_MY_CHANNELS']),
+    infoChennel() {
+      if (this.isLogin) {
+        this.getChennel()
+      } else {
+        const myChannels = this.$store.state.myChannels
+        if (myChannels.length === 0) {
+          this.getChennel()
+        } else {
+          this.chennles = myChannels
+        }
+      }
+    },
     async getChennel() {
       try {
         const { data } = await getChennelAPI()
@@ -67,6 +87,43 @@ export default {
         } else {
           const status = error.response.status
           status === 507 && this.$toast.fail('情书新')
+        }
+      }
+    },
+    async delChannel(id) {
+      try {
+        const newChannels = this.chennles.filter((item) => item.id !== id)
+        if (this.isLogin) {
+          await delChannelAPI(id)
+        } else {
+          // 存储本地
+          this.GET_MY_CHANNELS(newChannels)
+        }
+        this.chennles = newChannels
+        this.$toast.success('删除成功')
+      } catch (error) {
+        if (error.response && error.response.status === 401) {
+          this.$toast.fail('请重新登录后删除')
+        } else {
+          throw error
+        }
+      }
+    },
+    async addChannel(item) {
+      try {
+        if (this.isLogin) {
+          await addChannelAPI(item.id, this.chennles.length)
+        } else {
+          // 存储到本地
+          this.GET_MY_CHANNELS([...this.chennles, item])
+        }
+        this.chennles.push(item)
+        this.$toast.success('添加成功')
+      } catch (error) {
+        if (error.response && error.response.status === 401) {
+          this.$toast.fail('请重新登录后')
+        } else {
+          throw error
         }
       }
     }

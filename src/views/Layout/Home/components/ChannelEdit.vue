@@ -32,6 +32,7 @@
           :key="item.di"
           :text="item.name"
           icon="plus"
+          @click="$emit('add-Channel', item)"
         />
       </van-grid>
     </div>
@@ -58,9 +59,9 @@ export default {
       const { data } = await gatAllChannelsAPI()
       this.allChannels = data.data.channels
     },
-    handelMyChannel({ name }, index) {
+    handelMyChannel({ name, id }, index) {
       if (this.isEdit && name !== '推荐') {
-        /* 删除频道 */
+        this.$emit('del-Channel', id)
       } else {
         /* 跳转 */
         this.$emit('change-active', index)
@@ -103,11 +104,13 @@ export default {
     justify-content: flex-end;
     align-items: center;
   }
-
+  :deep(.van-grid-item__icon + .van-grid-item__text) {
+    margin-top: unset;
+  }
   // 关闭按钮样式
   :deep(.van-grid-item__content) {
     position: relative;
-    .van-grid-item__content {
+    .van-grid-item__icon {
       position: absolute;
       top: 0;
       right: 0;

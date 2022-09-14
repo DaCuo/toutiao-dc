@@ -57,23 +57,58 @@
       }
 
       then(noFulfilled, noRejected) {
-        // then 成功的回调 并把成功的结果传给then成功的回调
-        if (this.status === FULFILLED) {
-          noFulfilled(this.value)
-        }
-        // then 失败的回调 并把失败的结果传给then失败的回调
-        if (this.status === REJECTED) {
-          noRejected(this.reason)
-        }
-        // 异步函数的处理 先把函数保存起来，等异步函数进行完毕以后，再去相对的成功或者失败的函数内去重新调用
-        if (this.status === PENDING) {
-          this.noFulfilledCallbacks.push(() => {
-            noFulfilled(this.value)
-          })
-          this.noRejectedCallbacks.push(() => {
-            noRejected(this.reason)
-          })
-        }
+
+        const p2 = new Promise((resolve, reject) => {
+          // then 成功的回调 并把成功的结果传给then成功的回调
+          if (this.status === FULFILLED) {
+            // 链式调用时上一次的.then报错时执行reject通知下次.then
+            // queueMicrotask() 微任务队列把函数内的内容加入微任务一步队列
+            queueMicrotask(() => {
+              try {
+                let x = noFulfilled(this.value)
+                resolve(x)
+              } catch (error) {
+                reject(error)
+              }
+            })
+          }
+          // then 失败的回调 并把失败的结果传给then失败的回调
+          if (this.status === REJECTED) {
+            queueMicrotask(() => {
+              try {
+                let x = noRejected(this.reason)
+                resolve(x)
+              } catch (error) {
+                reject(error)
+              }
+            })
+          }
+          // 异步函数的处理 先把函数保存起来，等异步函数进行完毕以后，再去相对的成功或者失败的函数内去重新调用
+          if (this.status === PENDING) {
+            this.noFulfilledCallbacks.push(() => {
+              queueMicrotask(() => {
+                try {
+                  let x = noFulfilled(this.value)
+                  resolve(x)
+                } catch (error) {
+                  reject(error)
+                }
+              })
+            })
+            this.noRejectedCallbacks.push(() => {
+              queueMicrotask(() => {
+                try {
+                  let x = noRejected(this.reason)
+                  resolve(x)
+                } catch (error) {
+                  reject(error)
+                }
+              })
+            })
+          }
+        })
+        //  return 一个Promise对象，让实例可以链式调用.then
+        return p2
       }
 
     }
