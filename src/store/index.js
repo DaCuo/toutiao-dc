@@ -11,14 +11,15 @@ export default new Vuex.Store({
   plugins: [
     Persistedstate({
       key: 'HM_TT',
-      reducer({ tokenObj, myChannels }) {
-        return { tokenObj, myChannels }
+      reducer({ tokenObj, myChannels, histories }) {
+        return { tokenObj, myChannels, histories }
       }
     })
   ],
   state: {
     tokenObj: {},
-    myChannels: []
+    myChannels: [],
+    histories: []
   },
   getters: {
     isLogin(state) {
@@ -35,6 +36,9 @@ export default new Vuex.Store({
      */
     GET_MY_CHANNELS(state, channel) {
       state.myChannels = channel
+    },
+    GET_HISTORY(state, histories) {
+      state.histories = histories
     }
   },
   actions: {},
