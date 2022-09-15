@@ -19,7 +19,7 @@
     <search-suggestion></search-suggestion> -->
     <component
       :keywords="keywords"
-      @change-keywords="onSearch()"
+      @change-keywords="onSearch"
       :is="componentName"
     ></component>
   </div>
@@ -57,6 +57,7 @@ export default {
   methods: {
     ...mapMutations(['GET_HISTORY']),
     onSearch(keywords) {
+      console.log(keywords)
       const distinctHistories = [...new Set([keywords, ...this.histories])]
       this.GET_HISTORY(distinctHistories)
       this.keywords = keywords
